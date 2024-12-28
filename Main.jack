@@ -1,0 +1,46 @@
+class Main {
+    function void main() {
+        var ShellGame game;
+        var int guess;
+        var boolean result;
+        var String prompt;
+        
+        let game = ShellGame.new();
+        
+        // Initialize game and show initial setup
+        do Output.printString("Welcome to the Shell Game!");
+        do Output.println();
+        do Output.printString("Watch carefully where the ball is...");
+        do Output.println();
+        
+        do game.initGame();
+        do Sys.wait(2000);  // Wait 2 seconds to show initial position
+        
+        // Shuffle shells
+        do game.shuffle();
+        
+        // Get player's guess
+        do Output.moveCursor(18, 0);
+        let prompt = "Which shell has the ball? (0-2): ";
+        do Output.printString(prompt);
+        let guess = Keyboard.readInt(prompt);
+        
+        // Check result
+        let result = game.makeGuess(guess);
+        
+        // Reveal ball and show result
+        do game.revealBall();
+        do Output.moveCursor(20, 0);
+        
+        if (result) {
+            do Output.printString("Correct! You found the ball!");
+        }
+        else {
+            do Output.printString("Sorry, wrong guess!");
+        }
+        
+        do Sys.wait(2000);
+        do game.dispose();
+        return;
+    }
+}
