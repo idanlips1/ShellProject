@@ -2,44 +2,65 @@ class Main {
     function void main() {
         var ShellGame game;
         var int guess;
-        var boolean result;
+        var boolean result, playAgain;
         var String prompt;
         
         let game = ShellGame.new();
+        let playAgain = true;
         
-        // Initialize game and show initial setup
-        do Output.printString("Welcome to the Shell Game!");
-        do Output.println();
-        do Output.printString("Watch carefully where the ball is...");
-        do Output.println();
-        
-        do game.initGame();
-        do Sys.wait(2000);  // Wait 2 seconds to show initial position
-        
-        // Shuffle shells
-        do game.shuffle();
-        
-        // Get player's guess
-        do Output.moveCursor(18, 0);
-        let prompt = "Which shell has the ball? (0-2): ";
-        do Output.printString(prompt);
-        let guess = Keyboard.readInt(prompt);
-        
-        // Check result
-        let result = game.makeGuess(guess);
-        
-        // Reveal ball and show result
-        do game.revealBall();
-        do Output.moveCursor(20, 0);
-        
-        if (result) {
-            do Output.printString("Correct! You found the ball!");
+        while (playAgain) {
+            do Screen.clearScreen();
+            do Output.printString("Welcome to the Shell Game!");
+            do Output.println();
+            do Output.printString("Your current money: $");
+            do Output.printInt(game.getMoney());
+            do Output.println();
+            do Output.printString("Bet: $10 - Win: $50");
+            do Output.println();
+            
+            if (~(game.placeBet())) {
+                do Output.printString("Sorry, you don't have enough money to play!");
+                let playAgain = false;
+            } else {
+                do Output.printString("Watch carefully where the ball is placed...");
+                do Output.println();
+                
+                do game.initGame();
+                do Sys.wait(2000);
+                
+                do Output.printString("Shuffling shells...");
+                do Output.println();
+                do game.shuffle();
+                
+                do Output.moveCursor(18, 0);
+                let prompt = "Which shell has the ball? (1-3): ";
+                do Output.printString(prompt);
+                let guess = Keyboard.readInt(prompt);
+                let guess = guess - 1;  // Convert 1-3 to 0-2
+                
+                let result = game.makeGuess(guess);
+                do game.revealBall();
+                
+                if (result) {
+                    do game.addWinnings();
+                    do Output.printString("Congratulations! You won 50 shekels!");
+                } else {
+                    do Output.printString("Sorry! The ball was under shell ");
+                    do Output.printInt(game.getBallPosition() + 1);
+                }
+                
+                do Output.println();
+                do Output.printString("Your money: $");
+                do Output.printInt(game.getMoney());
+                do Output.println();
+                do Output.printString("Play again? (1=yes, 0=no): ");
+                let playAgain = (Keyboard.readInt("") = 1);
+            }
         }
-        else {
-            do Output.printString("Sorry, wrong guess!");
-        }
         
-        do Sys.wait(2000);
+        do Screen.clearScreen();
+        do Output.printString("Thanks for playing! Final money: $");
+        do Output.printInt(game.getMoney());
         do game.dispose();
         return;
     }

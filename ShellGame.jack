@@ -1,8 +1,9 @@
 class ShellGame {
-    field Array shells;     // Array to store shell positions
-    field int ballPosition; // Position of the ball (0-2)
-    field int shellWidth;   // Width of each shell
-    field int shellHeight;  // Height of each shell
+    field Array shells;     
+    field int ballPosition; 
+    field int shellWidth;   
+    field int shellHeight;  
+    field int money;       
     
     // Constructor
     constructor ShellGame new() {
@@ -12,6 +13,7 @@ class ShellGame {
         let shells[2] = 0;
         let shellWidth = 60;
         let shellHeight = 40;
+        let money = 100;    
         return this;
     }
 
@@ -22,39 +24,42 @@ class ShellGame {
         return;
     }
 
-    // Simple random number generator (0-2)
+    // Random number generator (0-2)
     method int getRandom() {
-        // Using the built-in RAM[0] which changes rapidly as a source of randomness
-        return Memory.peek(0) & 3;  // Mask with 3 to get values 0-2
+        return Memory.peek(0) & 3;
     }
 
-    // Draw a single shell at specified position
+    // Draw a single shell
     method void drawShell(int x, int y) {
-        // Draw inverted U shape for shell
-        do Screen.drawLine(x, y + shellHeight, x, y + 10);                    // Left vertical
-        do Screen.drawLine(x, y + 10, x + (shellWidth/2), y);                // Left diagonal
-        do Screen.drawLine(x + (shellWidth/2), y, x + shellWidth, y + 10);   // Right diagonal
-        do Screen.drawLine(x + shellWidth, y + 10, x + shellWidth, y + shellHeight); // Right vertical
+        // Main shell shape
+        do Screen.drawLine(x, y + shellHeight, x, y + 10);
+        do Screen.drawLine(x, y + 10, x + (shellWidth/2), y);
+        do Screen.drawLine(x + (shellWidth/2), y, x + shellWidth, y + 10);
+        do Screen.drawLine(x + shellWidth, y + 10, x + shellWidth, y + shellHeight);
+        
+        // Detail lines
+        do Screen.drawLine(x + 5, y + 15, x + shellWidth - 5, y + 15);
+        do Screen.drawLine(x + 10, y + 20, x + shellWidth - 10, y + 20);
         return;
     }
 
     // Draw all shells
     method void drawShells() {
         var int baseX, baseY, i;
-        let baseY = 100;  // Y position for all shells
+        let baseY = 100;
         let i = 0;
         
         while (i < 3) {
-            let baseX = 100 + (i * (shellWidth + 20));  // Space shells apart
+            let baseX = 100 + (i * (shellWidth + 20));
             do drawShell(baseX, baseY);
-            do Output.moveCursor(15, 13 + (i * 8));     // Position numbers below shells
-            do Output.printInt(i);
+            do Output.moveCursor(15, 13 + (i * 8));
+            do Output.printInt(i + 1);  // Numbers 1,2,3
             let i = i + 1;
         }
         return;
     }
 
-    // Show ball animation
+    // Show ball
     method void showBall(int position) {
         var int ballX, ballY;
         let ballX = 130 + (position * (shellWidth + 20));
@@ -69,13 +74,43 @@ class ShellGame {
         let shells[ballPosition] = 1;
         do Screen.clearScreen();
         do drawShells();
-        do showBall(ballPosition);  // Show initial ball position
-        do Screen.clearScreen();    // Clear the ball
-        do drawShells();           // Redraw shells without ball
+        do showBall(ballPosition);  
+        do Sys.wait(1000);         // Show ball position briefly
+        do Screen.clearScreen();    
+        do drawShells();           
         return;
     }
 
-    // Swap two shells
+    // Animate shell swap
+    method void animateShellSwap(int pos1, int pos2) {
+        var int x1, x2, y, steps, i;
+        var int dx;
+        
+        let y = 100;
+        let x1 = 100 + (pos1 * (shellWidth + 20));
+        let x2 = 100 + (pos2 * (shellWidth + 20));
+        let steps = 20;
+        let dx = ((x2 - x1) / steps);
+        
+        let i = 0;
+        while (i < steps) {
+            do Screen.clearScreen();
+            // Draw all shells
+            if (pos1 > pos2) {
+                do drawShell(x2 - (dx * i), y);
+                do drawShell(x1 + (dx * i), y);
+            } else {
+                do drawShell(x1 + (dx * i), y);
+                do drawShell(x2 - (dx * i), y);
+            }
+            do Sys.wait(50);
+            let i = i + 1;
+        }
+        do drawShells();  // Redraw final position
+        return;
+    }
+
+    // Swap shells in array
     method void swapShells(int pos1, int pos2) {
         var int temp;
         let temp = shells[pos1];
@@ -84,20 +119,25 @@ class ShellGame {
         return;
     }
 
-    // Shuffle the shells
+    // Shuffle shells
     method void shuffle() {
-        var int i, swaps;
+        var int i, swaps, pos1, pos2;
         let swaps = 5;
         
         let i = 0;
         while (i < swaps) {
-            do swapShells(getRandom(), getRandom());
+            let pos1 = getRandom();
+            let pos2 = getRandom();
+            if (~(pos1 = pos2)) {
+                do animateShellSwap(pos1, pos2);
+                do swapShells(pos1, pos2);
+            }
             let i = i + 1;
         }
         return;
     }
 
-    // Let player guess where the ball is
+    // Check player's guess
     method boolean makeGuess(int guess) {
         if (guess < 0) { return false; }
         if (guess > 2) { return false; }
@@ -109,10 +149,28 @@ class ShellGame {
         return ballPosition;
     }
 
-    // Reveal the ball's location
+    // Reveal ball location
     method void revealBall() {
         do showBall(ballPosition);
         return;
+    }
+
+    // Money management methods
+    method int getMoney() {
+        return money;
+    }
+
+    method void addWinnings() {
+        let money = money + 50;
+        return;
+    }
+
+    method boolean placeBet() {
+        if (money < 10) {
+            return false;
+        }
+        let money = money - 10;
+        return true;
     }
 }
 
