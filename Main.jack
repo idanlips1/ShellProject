@@ -10,6 +10,7 @@ class Main {
         
         while (playAgain) {
             do Screen.clearScreen();
+            do Output.moveCursor(0, 0);
             do Output.printString("Welcome to the Shell Game!");
             do Output.println();
             do Output.printString("Your current money: $");
@@ -22,25 +23,27 @@ class Main {
                 do Output.printString("Sorry, you don't have enough money to play!");
                 let playAgain = false;
             } else {
+                do Output.println();
                 do Output.printString("Watch carefully where the ball is placed...");
                 do Output.println();
                 
                 do game.initGame();
                 do Sys.wait(2000);
                 
-                do Output.printString("Shuffling shells...");
-                do Output.println();
                 do game.shuffle();
                 
                 do Output.moveCursor(18, 0);
                 let prompt = "Which shell has the ball? (1-3): ";
                 do Output.printString(prompt);
                 let guess = Keyboard.readInt(prompt);
-                let guess = guess - 1;  // Convert 1-3 to 0-2
+                
+                // Adjust guess to 0-based index
+                let guess = guess - 1;
                 
                 let result = game.makeGuess(guess);
                 do game.revealBall();
                 
+                do Output.println();
                 if (result) {
                     do game.addWinnings();
                     do Output.printString("Congratulations! You won 50 shekels!");
@@ -50,8 +53,10 @@ class Main {
                 }
                 
                 do Output.println();
+                do Output.println();
                 do Output.printString("Your money: $");
                 do Output.printInt(game.getMoney());
+                do Output.println();
                 do Output.println();
                 do Output.printString("Play again? (1=yes, 0=no): ");
                 let playAgain = (Keyboard.readInt("") = 1);
@@ -59,8 +64,12 @@ class Main {
         }
         
         do Screen.clearScreen();
-        do Output.printString("Thanks for playing! Final money: $");
+        do Output.moveCursor(10, 20);
+        do Output.printString("Thanks for playing!");
+        do Output.println();
+        do Output.printString("Final money: $");
         do Output.printInt(game.getMoney());
+        
         do game.dispose();
         return;
     }
